@@ -1,0 +1,30 @@
+<test><question id = "1"> Столица Ирландии?<answer1 id = "+">1) Дублин</answer1>
+		<answer2 id = "-">2) Москва</answer2><answer3 id = "-">3) Прага</answer3>
+		<answer4 id = "-">4) Рига</answer4>
+
+	</question>
+
+	<question id = "2"> 9 * 9?<answer1 id = "-">1) 26</answer1>
+		<answer2 id = "+">2) 81</answer2>
+		<answer3 id = "-">3) 80</answer3>
+		<answer4 id = "-">4) 72</answer4>
+	</question>	
+	<question id = "3"> Диффеоморфизм гладкости 0?
+		<answer1 id = "-">1) Архаизм</answer1>
+		<answer2 id = "-">2) Афоризм</answer2>
+		<answer3 id = "+">3) Гомеоморфизм</answer3>
+		<answer4 id = "-">4) Гомоморфизм</answer4>
+	</question>
+	<question id = "4"> Пикколо (что это)?
+		<answer1 id = "-">1) Птица</answer1>
+		<answer2 id = "-">2) Рыба</answer2>
+		<answer3 id = "-">3) Высокий голос</answer3>
+		<answer4 id = "+">4) Флейта</answer4>
+	</question>
+	<question id = "5"> Книга А.И.Солженицына?
+		<answer1 id = "-">1) "Три товарища"</answer1>
+		<answer2 id = "-">2) "Братья Карамазовы"</answer2>
+		<answer3 id = "+">3) "Архипелаг ГУЛАГ"</answer3>
+		<answer4 id = "-">4) "Автостопом по Галактике"</answer4>
+	</question>
+</test>

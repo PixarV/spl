@@ -1,0 +1,9 @@
+﻿<svg width="500" height="500"  xmlns="http://www.w3.org/2000/svg" version="1.1">
+	<rect x="100" y="200" width="200" height="200" />
+	<rect x="130" y="250" width="70" height="70" fill="white"/>
+	<rect x="210" y="250" width="70" height="170" fill="white"/>
+	<polyline  points="100,200 200,100 300,200" fill="black" />
+	<rect x="230" y="90" width="40" height="100" fill="black"/>
+	<polygon fill="red"  points="200,70 205.8,87.2 223.8,87.2 209.4,98 214.6,115.2 200,105 185.4,115.2 190.6,98  176.2,87.2 194.2,87.2" />
+</svg>
+

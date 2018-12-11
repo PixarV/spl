@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<Order>
+  <orderTo>
+    <name>Kevin Flynn</name>
+    <street>Ultra street 9</street>
+    <orgname>ENCOM Company</orgname>
+    <country>NULL</country>
+  </orderTo>
+  <items>
+    <item>
+      <title>Computer</title>
+      <quantity>2</quantity>
+      <price>1974</price>
+    </item>
+    <item>
+      <title>Keyboard</title>
+      <quantity>4</quantity>
+      <price>12</price>
+    </item>
+  </items>
+</Order>
