@@ -8,9 +8,10 @@
 #include <stdio.h>
 
 #include <sys/mman.h>
+#include <unistd.h>
 
 #define HEAP_START ((void*)0x04040000)
-#define PAGE_SIZE 4096
+#define PAGE_SIZE getpagesize()
 #define BLOCK_MIN_SIZE 256
 
 #pragma pack(push, 1)
