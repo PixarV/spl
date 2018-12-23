@@ -1,49 +1,26 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
+#include "bitmap.h"
 
-static const uint8_t zero = 0;
 
-typedef struct __attribute__((__packed__)) {
-    uint16_t bfType;
-    uint32_t bfSize;
-    uint32_t bfReserved;
-    uint32_t bfOffBits;
+read_status validate_header(header const* header) {
+    if (  (header->bfType != 0x4D42)
+       || (header->bfReserved)
+       || (header->biSize != 0x28)
+       || (header->biWidth < 1 || header->biHeight < 1) 
+       || (header->biPlanes != 1))
+           return READ_INVALID_BITMAP_HEADER;
 
-    uint32_t biSize;
-    uint32_t biWidth;
-    uint32_t biHeight;
-    uint16_t biPlanes;
-    uint16_t biBitCount;
-    uint32_t biCompression;
-    uint32_t biSizeImage;
-    uint32_t biXPelsPerMeter;
-    uint32_t biYPelsPerMeter;
-    uint32_t biClrUsed;
-    uint32_t biClrImportant;
-} header;
+    if ( (header->biBitCount != 0x18) || (header->biCompression) )
+        return READ_FILE_UNSUPPORTED_VERSION;
 
-typedef struct __attribute__((__packed__)) {
-    uint8_t r, g, b;
-} pixel;
-
-typedef struct image {
-	header* header;
-    uint32_t width, height;
-    uint16_t depth;
-    pixel* img;
-} image;
-
-typedef pixel*(direction)(const pixel*, const uint32_t, const uint32_t, const uint16_t);
-
-header* get_header(FILE* file) {
-	header* bmp_header = malloc(sizeof(header));
-	fread(bmp_header, sizeof(header), 1, file);
-	return bmp_header;
+	return READ_OK;
 }
 
-pixel* get_img_data(const uint32_t w, const uint32_t h, const uint16_t d, FILE* file) {
+read_status get_header(header* bmp_header, FILE* file) {
+	fread(bmp_header, sizeof(header), 1, file);
+	return validate_header(bmp_header);
+}
+
+pixel* get_img_data(uint32_t w, uint32_t h, uint16_t d, FILE* file) {
 	pixel* img  = malloc(w*h*d);
 
 	int offset = 0;
@@ -56,11 +33,15 @@ pixel* get_img_data(const uint32_t w, const uint32_t h, const uint16_t d, FILE* 
 	return img;
 }
 
-image* get_image(char* filename) {
-    FILE* file = fopen(filename, "rb");
+read_status get_image(image* bmp, char const* filename) {
+    FILE* file = fopen(filename, "r");
+	if (!file) { return WRITE_INVALID_FILE; }
 
-	image* bmp = malloc(sizeof(image));
-    header* bmp_header = get_header(file);  
+	header* bmp_header = malloc(sizeof(header));
+    
+	read_status status = get_header(bmp_header, file);  
+	if (status != READ_OK) { return status; }
+
 	bmp->header = bmp_header;
 
 	bmp->width = bmp_header->biWidth;
@@ -70,11 +51,14 @@ image* get_image(char* filename) {
 	bmp->img = get_img_data(bmp->width, bmp->height, bmp->depth, file);
 
 	fclose(file);
-	return bmp;
+	return READ_OK;
 }
 
-void write_image(const image* bmp, const char* filename) {
-    FILE* file = fopen(filename, "wb");
+write_status write_image(const image* bmp, const char* filename) {
+	if (!bmp) { return WRITE_NULL_PTR_IMAGE; }
+
+    FILE* file = fopen(filename, "w");
+	if (!file) { return WRITE_INVALID_FILE; }
 
 	fwrite(bmp->header, sizeof(header), 1, file);
 
@@ -89,9 +73,10 @@ void write_image(const image* bmp, const char* filename) {
 	}
 
 	fclose(file);
+	return WRITE_OK;
 }
 
-static pixel* counter_clockwise(const pixel* img, const uint32_t w, const uint32_t h, const uint16_t d) {
+pixel* counter_clockwise(pixel const* img, uint32_t w, uint32_t h, uint16_t d) {
 	pixel* temp = malloc(w*h*d);
 	int offset = 0;
 
@@ -105,7 +90,7 @@ static pixel* counter_clockwise(const pixel* img, const uint32_t w, const uint32
 	return temp;
 }
 
-static pixel* clockwise(const pixel* img, const uint32_t w, const uint32_t h, const uint16_t d) {
+pixel* clockwise(pixel const* img, uint32_t w, uint32_t h, uint16_t d) {
 	pixel* temp = malloc(w*h*d);
 	int offset = 0;
 
@@ -126,7 +111,6 @@ void rotate_on_90(image* bmp, direction* direction) {
 	uint32_t h = bmp->height;
 	uint16_t d = bmp->depth;
 	pixel* img = bmp->img;
-	pixel* temp = malloc(w*h*d);
 
 	if (w != h) {
 		bmp_header->biWidth = h;
@@ -138,16 +122,18 @@ void rotate_on_90(image* bmp, direction* direction) {
 	bmp->img = direction(img, w, h, d);
 }
 
-int main() {
-	char* filename = "bmp/duck.bmp";
-		
-	
-	image* bmp = get_image(filename);
-
-	//rotate_on_90(header, image, counter_clockwise);
+void rotate_on_180(image* bmp) {
 	rotate_on_90(bmp, clockwise);
 	rotate_on_90(bmp, clockwise);
-
-	write_image(bmp, "hhh.bmp");
 }
 
+void free_img(image* bmp) {
+	free(bmp->img);
+	free(bmp->header);
+	free(bmp);
+}
+
+
+uint32_t sum(uint32_t a, uint32_t b) {
+	return a + b;
+}
