@@ -34,27 +34,27 @@
 #define MAX_DHCP_OPTIONS_LENGTH          312
 
 typedef struct dhcp_packet {
-	uint8_t op, htype, hlen, hops;
-	uint32_t xid;                  /* random transaction id number - chosen by this machine */
-	uint16_t secs;                 /* seconds used in timing */
-	uint16_t flags;                /* flags */
-	struct in_addr ciaddr;          /* IP address of this machine (if we already have one) */
-	struct in_addr yiaddr;          /* IP address of this machine (offered by the DHCP server) */
-	struct in_addr siaddr;          /* IP address of DHCP server */
-	struct in_addr giaddr;          /* IP address of DHCP relay */
-	unsigned char chaddr [MAX_DHCP_CHADDR_LENGTH];      /* hardware address of this machine */
-	char sname [MAX_DHCP_SNAME_LENGTH];    /* name of DHCP server */
-	char file [MAX_DHCP_FILE_LENGTH];      /* boot file name (used for diskless booting?) */
-	char options[MAX_DHCP_OPTIONS_LENGTH];  /* options */
+    uint8_t op, htype, hlen, hops;
+    uint32_t xid;                  /* random transaction id number - chosen by this machine */
+    uint16_t secs;                 /* seconds used in timing */
+    uint16_t flags;                /* flags */
+    struct in_addr ciaddr;          /* IP address of this machine (if we already have one) */
+    struct in_addr yiaddr;          /* IP address of this machine (offered by the DHCP server) */
+    struct in_addr siaddr;          /* IP address of DHCP server */
+    struct in_addr giaddr;          /* IP address of DHCP relay */
+    unsigned char chaddr [MAX_DHCP_CHADDR_LENGTH];      /* hardware address of this machine */
+    char sname [MAX_DHCP_SNAME_LENGTH];    /* name of DHCP server */
+    char file [MAX_DHCP_FILE_LENGTH];      /* boot file name (used for diskless booting?) */
+    char options[MAX_DHCP_OPTIONS_LENGTH];  /* options */
 } dhcp_packet;
 
 typedef struct dhcp_offer {
-	struct in_addr server_address;   /* address of DHCP server that sent this offer */
-	struct in_addr offered_address;  /* the IP address that was offered to us */
-	u_int32_t lease_time;            /* lease time in seconds */
-	u_int32_t renewal_time;          /* renewal time in seconds */
-	u_int32_t rebinding_time;        /* rebinding time in seconds */
-	struct dhcp_offer_struct* next;
+    struct in_addr server_address;   /* address of DHCP server that sent this offer */
+    struct in_addr offered_address;  /* the IP address that was offered to us */
+    u_int32_t lease_time;            /* lease time in seconds */
+    u_int32_t renewal_time;          /* renewal time in seconds */
+    u_int32_t rebinding_time;        /* rebinding time in seconds */
+    struct dhcp_offer_struct* next;
 } dhcp_offer;
 
 #define DHCP_SERVER_PORT   67
@@ -69,26 +69,26 @@ int create_dhcp_socket(void){
     struct sockaddr_in myname; // socket for ip protocols
     int sock;
 
-	bzero(&myname, sizeof(myname));
+    bzero(&myname, sizeof(myname));
     myname.sin_family = AF_INET; 
     myname.sin_port = htons(DHCP_SERVER_PORT); // htons - define correct order of bytes
     myname.sin_addr.s_addr = inet_addr(DHCP_SERVER_ADDR);                 
     bzero(&myname.sin_zero, sizeof(myname.sin_zero));
 
-	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	
+    sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    
     if (sock < 0) {
-		printf("Error: Could not create socket!\n");
-		exit(STATE_UNKNOWN);
-	}
+        printf("Error: Could not create socket!\n");
+        exit(STATE_UNKNOWN);
+    }
 
-	printf("DHCP socket: %d\n",sock);
+    printf("DHCP socket: %d\n",sock);
 
     if (bind(sock, (struct sockaddr*)&myname, sizeof(myname)) < 0){
-		perror("hui");
-		printf("Error: Could not bind to DHCP socket (port %d)!\n", DHCP_SERVER_PORT);
-		exit(STATE_UNKNOWN);
-	}
+        perror("hui");
+        printf("Error: Could not bind to DHCP socket (port %d)!\n", DHCP_SERVER_PORT);
+        exit(STATE_UNKNOWN);
+    }
 
     return sock;
 }
@@ -97,54 +97,54 @@ char const* network_interface_name = "enp0s31f6";
 
 /* determines hardware address on client machine */
 unsigned char* get_hardware_address(int sock, unsigned char* client_hardware_address){
-	struct ifreq ifr;
+    struct ifreq ifr;
 
-	strncpy((char*)&ifr.ifr_name, network_interface_name, sizeof(ifr.ifr_name));
+    strncpy((char*)&ifr.ifr_name, network_interface_name, sizeof(ifr.ifr_name));
 
-	/* try and grab hardware address of requested interface */
-	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0){
-		printf("Error: Could not get hardware address of interface '%s'\n", network_interface_name);
-		exit(STATE_UNKNOWN);
-	}
+    /* try and grab hardware address of requested interface */
+    if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0){
+        printf("Error: Could not get hardware address of interface '%s'\n", network_interface_name);
+        exit(STATE_UNKNOWN);
+    }
 
-	memcpy(&client_hardware_address[0], &ifr.ifr_hwaddr.sa_data, 6);
-	return client_hardware_address;
+    memcpy(&client_hardware_address[0], &ifr.ifr_hwaddr.sa_data, 6);
+    return client_hardware_address;
 }
 
 /* sends a DHCP packet */
 int send_dhcp_packet(void* buffer, int buffer_size, int sock, struct sockaddr_in* dest){
-	struct sockaddr_in myname;
-	int result;
+    struct sockaddr_in myname;
+    int result;
 
-	result = sendto(sock, (char*)buffer, buffer_size, 0, (struct sockaddr*)dest, sizeof(*dest));
+    result = sendto(sock, (char*)buffer, buffer_size, 0, (struct sockaddr*)dest, sizeof(*dest));
 
-	printf("send_dhcp_packet result: %d\n",result);
+    printf("send_dhcp_packet result: %d\n",result);
 
-	if(result < 0) { return ERROR; }
+    if(result < 0) { return ERROR; }
 
-	return OK;
+    return OK;
 }
 
 void print_info(dhcp_packet const* packet, char const* name) {
-	printf("%s XID: %lu (0x%X)\n", name, (unsigned long) ntohl(packet->xid), ntohl(packet->xid));
-	
-	printf("%s ciaddr: %s\n", name, inet_ntoa(packet->ciaddr));
-	printf("%s yiaddr: %s\n", name, inet_ntoa(packet->yiaddr));
-	printf("%s siaddr: %s\n", name, inet_ntoa(packet->siaddr));
-	printf("%s giaddr: %s\n", name, inet_ntoa(packet->giaddr));
-	
-	printf("Hardware address: ");
-	for (int i = 0; i < 6; ++i) {
-		printf("%2.2x", packet->chaddr[i]);
-	}
-	printf( "\n");
+    printf("%s XID: %lu (0x%X)\n", name, (unsigned long) ntohl(packet->xid), ntohl(packet->xid));
+    
+    printf("%s ciaddr: %s\n", name, inet_ntoa(packet->ciaddr));
+    printf("%s yiaddr: %s\n", name, inet_ntoa(packet->yiaddr));
+    printf("%s siaddr: %s\n", name, inet_ntoa(packet->siaddr));
+    printf("%s giaddr: %s\n", name, inet_ntoa(packet->giaddr));
+    
+    printf("Hardware address: ");
+    for (int i = 0; i < 6; ++i) {
+        printf("%2.2x", packet->chaddr[i]);
+    }
+    printf( "\n");
 }
 
 #define BOOTREQUEST     1
 #define BOOTREPLY       2
 #define ETHERNET_HARDWARE_ADDRESS            1     /* ethernet type */
 #define ETHERNET_HARDWARE_ADDRESS_LENGTH     6     /* length of our hardware address */
-#define NUM_OF_ROUTERS     			 		 0     /* Number of intermediate routeirs */
+#define NUM_OF_ROUTERS                       0     /* Number of intermediate routeirs */
 
 #define DHCPDISCOVER    1
 #define DHCPOFFER       2
@@ -156,140 +156,140 @@ void print_info(dhcp_packet const* packet, char const* name) {
 
 /* sends a DHCPDISCOVER message in an attempt to find DHCP servers */
 int send_dhcp_discover(int sock, unsigned char* client_hardware_address){
-	dhcp_packet discover_packet;
-	struct sockaddr_in sockaddr_broadcast;
+    dhcp_packet discover_packet;
+    struct sockaddr_in sockaddr_broadcast;
 
-	bzero(&discover_packet, sizeof(discover_packet));
-	
-	discover_packet.op = BOOTREQUEST;
-	discover_packet.htype = ETHERNET_HARDWARE_ADDRESS; 
-	discover_packet.hlen = ETHERNET_HARDWARE_ADDRESS_LENGTH; 
-	discover_packet.hops = NUM_OF_ROUTERS;
+    bzero(&discover_packet, sizeof(discover_packet));
+    
+    discover_packet.op = BOOTREQUEST;
+    discover_packet.htype = ETHERNET_HARDWARE_ADDRESS; 
+    discover_packet.hlen = ETHERNET_HARDWARE_ADDRESS_LENGTH; 
+    discover_packet.hops = NUM_OF_ROUTERS;
 
-	srand(time(NULL));
-	uint32_t packet_xid = random();
-	discover_packet.xid = htonl(packet_xid);
-	ntohl(discover_packet.xid);
+    srand(time(NULL));
+    uint32_t packet_xid = random();
+    discover_packet.xid = htonl(packet_xid);
+    ntohl(discover_packet.xid);
 
-	discover_packet.secs = 0;
-	discover_packet.flags = 0;
+    discover_packet.secs = 0;
+    discover_packet.flags = 0;
 
-	memcpy(discover_packet.chaddr, client_hardware_address, ETHERNET_HARDWARE_ADDRESS_LENGTH);
+    memcpy(discover_packet.chaddr, client_hardware_address, ETHERNET_HARDWARE_ADDRESS_LENGTH);
 
-	// magic cookie 
-	discover_packet.options[0] = '\x63';
-	discover_packet.options[1] = '\x82';
-	discover_packet.options[2] = '\x53';
-	discover_packet.options[3] = '\x63';
+    // magic cookie 
+    discover_packet.options[0] = '\x63';
+    discover_packet.options[1] = '\x82';
+    discover_packet.options[2] = '\x53';
+    discover_packet.options[3] = '\x63';
 
-	discover_packet.options[4] = DHCP_OPTION_MESSAGE_TYPE; 
-	discover_packet.options[4] = '\x1'; // length 
-	discover_packet.options[5] = DHCPDISCOVER; 
-	// options...
-	
-	// fill info about server
+    discover_packet.options[4] = DHCP_OPTION_MESSAGE_TYPE; 
+    discover_packet.options[4] = '\x1'; // length 
+    discover_packet.options[5] = DHCPDISCOVER; 
+    // options...
+    
+    // fill info about server
     sockaddr_broadcast.sin_port = htons(DHCP_SERVER_PORT);
     sockaddr_broadcast.sin_addr.s_addr = INADDR_ANY;
-	bzero(&sockaddr_broadcast.sin_zero, sizeof(sockaddr_broadcast.sin_zero));
+    bzero(&sockaddr_broadcast.sin_zero, sizeof(sockaddr_broadcast.sin_zero));
 
-	printf("DHCPDISCOVER to %s port %d\n", inet_ntoa(sockaddr_broadcast.sin_addr), ntohs(sockaddr_broadcast.sin_port));
-	print_info(&discover_packet, "DISCOVERY");
+    printf("DHCPDISCOVER to %s port %d\n", inet_ntoa(sockaddr_broadcast.sin_addr), ntohs(sockaddr_broadcast.sin_port));
+    print_info(&discover_packet, "DISCOVERY");
 
-	return send_dhcp_packet(&discover_packet, sizeof(discover_packet), sock, &sockaddr_broadcast);
+    return send_dhcp_packet(&discover_packet, sizeof(discover_packet), sock, &sockaddr_broadcast);
 }
 
 int receive_dhcp_packet(void *buffer, int buffer_size, int sock, struct sockaddr_in* address) {
-		int recv_result;
-		socklen_t address_size;
-		struct sockaddr_in source_address;
+        int recv_result;
+        socklen_t address_size;
+        struct sockaddr_in source_address;
 
-		bzero(&source_address, sizeof(source_address));
-		address_size = sizeof(source_address);
-		
+        bzero(&source_address, sizeof(source_address));
+        address_size = sizeof(source_address);
+        
         recv_result = recvfrom(sock,
-						(char *)buffer,
-						buffer_size,
-						MSG_PEEK,
-						(struct sockaddr *)&source_address,
-						&address_size);
+                        (char *)buffer,
+                        buffer_size,
+                        MSG_PEEK,
+                        (struct sockaddr *)&source_address,
+                        &address_size);
 
-		printf("recv_result_1: %d\n",recv_result);
+        printf("recv_result_1: %d\n",recv_result);
 
-       	if(recv_result < 0) {
-	   		printf("recvfrom() failed");
-       	    return ERROR;
-       	}
+        if(recv_result < 0) {
+            printf("recvfrom() failed");
+            return ERROR;
+        }
 
-	   	printf("receive_dhcp_packet() result: %d\n", recv_result);
-	   	printf("receive_dhcp_packet() source: %s\n", inet_ntoa(source_address.sin_addr));
+        printf("receive_dhcp_packet() result: %d\n", recv_result);
+        printf("receive_dhcp_packet() source: %s\n", inet_ntoa(source_address.sin_addr));
 
-		memcpy(address, &source_address, sizeof(source_address));
-		return OK;
+        memcpy(address, &source_address, sizeof(source_address));
+        return OK;
 }
 
 int get_dhcp_offer(int sock, dhcp_packet* offer_packet){
-	struct sockaddr_in source;
-	bzero(offer_packet, sizeof(*offer_packet));
-	
-	uint32_t result = receive_dhcp_packet(offer_packet, sizeof(*offer_packet), sock, &source);
-	
-	if(result != OK){
-		return ERROR;
-	}
+    struct sockaddr_in source;
+    bzero(offer_packet, sizeof(*offer_packet));
+    
+    uint32_t result = receive_dhcp_packet(offer_packet, sizeof(*offer_packet), sock, &source);
+    
+    if(result != OK){
+        return ERROR;
+    }
 
-	offer_packet->op = BOOTREPLY;
-	offer_packet->yiaddr.s_addr = inet_addr(DHCP_CLIENT_ADDR);
-	offer_packet->siaddr.s_addr = inet_addr(DHCP_SERVER_ADDR);
+    offer_packet->op = BOOTREPLY;
+    offer_packet->yiaddr.s_addr = inet_addr(DHCP_CLIENT_ADDR);
+    offer_packet->siaddr.s_addr = inet_addr(DHCP_SERVER_ADDR);
 
-	// magic cookie 
-	offer_packet->options[0] = '\x63';
-	offer_packet->options[1] = '\x82';
-	offer_packet->options[2] = '\x53';
-	offer_packet->options[3] = '\x63';
+    // magic cookie 
+    offer_packet->options[0] = '\x63';
+    offer_packet->options[1] = '\x82';
+    offer_packet->options[2] = '\x53';
+    offer_packet->options[3] = '\x63';
 
-	offer_packet->options[4] = DHCP_OPTION_MESSAGE_TYPE; 
-	offer_packet->options[4] = '\x1'; // length 
-	offer_packet->options[5] = DHCPOFFER; 
-	// options....
+    offer_packet->options[4] = DHCP_OPTION_MESSAGE_TYPE; 
+    offer_packet->options[4] = '\x1'; // length 
+    offer_packet->options[5] = DHCPOFFER; 
+    // options....
 
-	printf("DHCPOFFER from IP address %s\n", inet_ntoa(source.sin_addr));
-	return OK;
+    printf("DHCPOFFER from IP address %s\n", inet_ntoa(source.sin_addr));
+    return OK;
 }
 
 int main(int argc, char** argv){
-	uint32_t dhcp_socket, result;
-	
-	printf("hey\n");
+    uint32_t dhcp_socket, result;
+    
+    printf("hey\n");
 
-	/* create socket for DHCP communications */
-	dhcp_socket=create_dhcp_socket();
-	if (dhcp_socket < 0) {
-		exit(STATE_UNKNOWN);
-	}
+    /* create socket for DHCP communications */
+    dhcp_socket=create_dhcp_socket();
+    if (dhcp_socket < 0) {
+        exit(STATE_UNKNOWN);
+    }
 
-	/* get hardware address of client machine */
-	unsigned char client_hardware_address[MAX_DHCP_CHADDR_LENGTH];
-	get_hardware_address(dhcp_socket, client_hardware_address);
-	
-	if (dhcp_socket < 0) {
-		exit(STATE_UNKNOWN);
-	}
+    /* get hardware address of client machine */
+    unsigned char client_hardware_address[MAX_DHCP_CHADDR_LENGTH];
+    get_hardware_address(dhcp_socket, client_hardware_address);
+    
+    if (dhcp_socket < 0) {
+        exit(STATE_UNKNOWN);
+    }
 
-	printf("Hardware address: ");
-	for (int i = 0; i < 6; ++i) {
-		printf("%2.2x", client_hardware_address[i]);
-	}
-	printf( "\n");
+    printf("Hardware address: ");
+    for (int i = 0; i < 6; ++i) {
+        printf("%2.2x", client_hardware_address[i]);
+    }
+    printf( "\n");
 
-	/* send DHCPDISCOVER packet */
-	send_dhcp_discover(dhcp_socket, client_hardware_address);
+    /* send DHCPDISCOVER packet */
+    send_dhcp_discover(dhcp_socket, client_hardware_address);
 
-	/* receive DHCPOFFER packet */
-	dhcp_packet* offer_packet = malloc(sizeof(dhcp_packet));
-	get_dhcp_offer(dhcp_socket, offer_packet);
-	print_info(offer_packet, "OFFER");
+    /* receive DHCPOFFER packet */
+    dhcp_packet* offer_packet = malloc(sizeof(dhcp_packet));
+    get_dhcp_offer(dhcp_socket, offer_packet);
+    print_info(offer_packet, "OFFER");
 
-	close(dhcp_socket);
-	free(offer_packet);
-	return result;
+    close(dhcp_socket);
+    free(offer_packet);
+    return result;
 }
